@@ -1,101 +1,198 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { Button } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
+import confetti from "canvas-confetti";
+
+interface ColorCardProps {
+  title?: string;
+  color: string;
+  text?: string;
+  showColor?: boolean;
+}
+
+function ColorCard({ title, color, text, showColor }: ColorCardProps) {
+  return (
+    <div className="rounded-lg w-60 h-full flex flex-col items-center space-y-2">
+      {title && (
+        <div className="text-lg text-slate-900 font-semibold">{title}</div>
+      )}
+
+      {/* Use inline styles to set the background color */}
+      <div
+        className="w-full aspect-square rounded-md border shadow-sm"
+        style={{ backgroundColor: `#${color}` }}
+      />
+
+      {showColor && <div className="text-xs text-slate-500">{color}</div>}
+      {text && <div className="text-sm text-slate-900">{text}</div>}
+    </div>
+  );
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [currentGuess, setCurrentGuess] = useState("");
+  const [guesses, setGuesses] = useState<string[]>([]);
+  const [targetColor, setTargetColor] = useState("777777");
+  const [guessCorrect, setGuessCorrect] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  function handleGuess() {
+    if (currentGuess.length != 6) {
+      return;
+    }
+    if (currentGuess === targetColor) {
+      setGuessCorrect(true);
+      confetti();
+    }
+    setGuesses([currentGuess, ...guesses]);
+    setCurrentGuess("");
+  }
+
+  function generateRandomColor() {
+    return Math.floor(Math.random() * 16777215).toString(16);
+  }
+
+  function calculateHexCharacterValueDifference(
+    target: string,
+    guess: string,
+    index: number
+  ) {
+    return parseInt(target[index], 16) - parseInt(guess[index], 16);
+  }
+
+  function generateDiffEmoji(diff: number) {
+    if (diff === 0) {
+      return "✅";
+    }
+    if (diff > 0) {
+      if (diff > 2) {
+        return "⏫";
+      }
+      return "🔼";
+    }
+    if (diff < -2) {
+      return "⏬";
+    }
+    return "🔽";
+  }
+
+  useEffect(() => {
+    setTargetColor(generateRandomColor());
+  }, []);
+
+  return (
+    <div className="w-screen min-h-screen flex items-start justify-center">
+      <div className="max-w-5xl flex flex-col items-center p-8 space-y-10">
+        <div className="bg-slate-50 w-full rounded-lg shadow-md border-2 p-6 flex flex-col items-center justify-center space-y-8">
+          <div className="flex flex-row space-x-10">
+            <ColorCard color={targetColor} title="Target" />
+            <ColorCard
+              color={guesses.length > 0 ? guesses[0] : "777777"}
+              title="Your Guess"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          {!guessCorrect && (
+            <div className="flex flex-col items-center justify-center space-y-2">
+              <p className="font-bold text-2xl">Next Guess: </p>
+              <div className="flex flex-row space-x-3 items-center">
+                <p className="font-bold text-3xl">#</p>
+                <div className="bg-white">
+                  <InputOTP
+                    maxLength={6}
+                    pattern={"^[0-9a-f]+$"}
+                    value={currentGuess}
+                    onChange={(value) => setCurrentGuess(value)}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <Button variant="outline" size="icon" onClick={handleGuess}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+          {guessCorrect && (
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <p className="font-bold text-2xl">Correct! 🎉</p>
+              <p className="font-bold text-2xl">
+                The Hex Code is: #{targetColor}
+              </p>
+              <Button
+                onClick={() => {
+                  setGuessCorrect(false);
+                  console.log(generateRandomColor());
+                  setTargetColor(generateRandomColor());
+                  setGuesses([]);
+                }}
+                className="font-bold text-xl border bg-slate-50 text-black hover:shadow-lg hover:bg-slate-50 transition-all duration-300"
+                // style={{
+                //   borderColor: `#${targetColor}`,
+                //   backgroundColor: `#${targetColor}`,
+                // }}
+              >
+                Play Again
+              </Button>
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="bg-slate-50 rounded-lg shadow-md border-2 p-6 flex flex-col items-start space-y-6 w-full text-center">
+          <p className="font-bold text-2xl">Past Guesses:</p>
+          <div className="w-full flex flex-col items-center space-y-5">
+            {guesses.map((guess, index) => (
+              <div
+                key={index}
+                className="flex flex-row space-x-2 border border-black rounded-md items-center p-2"
+                style={{
+                  background: `linear-gradient(to right, #${targetColor}64, #${guess}64)`,
+                }}
+              >
+                <div
+                  className="w-14 h-14 border rounded-md shadow-lg"
+                  style={{ backgroundColor: `#${guess}` }}
+                />
+                <div className="grid grid-rows-2 grid-cols-6 gap-x-4 gap-y-1 text-2xl p-2  font-bold">
+                  {guess.split("").map((color, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-center"
+                    >
+                      {color}
+                    </div>
+                  ))}
+                  {guess.split("").map((color, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-center"
+                    >
+                      {generateDiffEmoji(
+                        calculateHexCharacterValueDifference(
+                          targetColor,
+                          guess,
+                          index
+                        )
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
