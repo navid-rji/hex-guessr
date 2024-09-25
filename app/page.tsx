@@ -19,7 +19,7 @@ interface ColorCardProps {
 
 function ColorCard({ title, color, text, showColor }: ColorCardProps) {
   return (
-    <div className="rounded-lg w-60 h-full flex flex-col items-center space-y-2">
+    <div className="rounded-lg w-28 md:w-60 h-full flex flex-col items-center space-y-2">
       {title && (
         <div className="text-lg text-slate-900 font-semibold">{title}</div>
       )}
@@ -87,8 +87,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-screen min-h-screen flex items-start justify-center">
-      <div className="max-w-5xl flex flex-col items-center p-8 space-y-10">
+    <div className="flex w-full items-start justify-center">
+      <div className="max-w-5xl flex flex-col items-center p-2 md:p-8 space-y-10">
+        <p className="font-bold text-4xl -mb-5">Hex Guessr</p>
         <div className="bg-slate-50 w-full rounded-lg shadow-md border-2 p-6 flex flex-col items-center justify-center space-y-8">
           <div className="flex flex-row space-x-10">
             <ColorCard color={targetColor} title="Target" />
